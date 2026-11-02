@@ -11,8 +11,8 @@ class LLM(Protocol):
     async def complete(self, prompt: str) -> str: ...
 
 
-class GrokLLM:
-    """xAI Grok through its OpenAI compatible chat completions endpoint."""
+class OpenAICompatibleLLM:
+    """Any provider with an OpenAI compatible chat completions endpoint (Groq, xAI, OpenAI...)."""
 
     def __init__(self, api_key: str, base_url: str, model: str):
         self._api_key = api_key
@@ -21,7 +21,7 @@ class GrokLLM:
 
     async def complete(self, prompt: str) -> str:
         if not self._api_key or not self._model:
-            raise LLMError("XAI_API_KEY and XAI_MODEL must be set in .env")
+            raise LLMError("LLM_API_KEY and LLM_MODEL must be set in .env")
         payload = {"model": self._model, "messages": [{"role": "user", "content": prompt}]}
         headers = {"Authorization": f"Bearer {self._api_key}"}
         async with httpx.AsyncClient(timeout=60) as client:

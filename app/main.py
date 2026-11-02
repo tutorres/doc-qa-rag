@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.db import get_session
 from app.embeddings import Embedder, SentenceTransformerEmbedder
-from app.llm import LLM, GrokLLM, LLMError
+from app.llm import LLM, OpenAICompatibleLLM, LLMError
 from app.models import Chunk, Document
 from app.rag import build_prompt, chunk_text, retrieve
 from app.schemas import AskIn, AskOut, DocumentIn, DocumentOut, SourceOut
@@ -21,7 +21,7 @@ def get_embedder() -> Embedder:
 
 @lru_cache
 def get_llm() -> LLM:
-    return GrokLLM(settings.xai_api_key, settings.xai_base_url, settings.xai_model)
+    return OpenAICompatibleLLM(settings.llm_api_key, settings.llm_base_url, settings.llm_model)
 
 
 @app.get("/health")

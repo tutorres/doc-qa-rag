@@ -13,7 +13,7 @@ Small document Q&A service, built as a study project: async FastAPI, SQLAlchemy 
 - SQLAlchemy 2.0 async (asyncpg) and Alembic
 - Postgres 16 with pgvector
 - Embeddings: `sentence-transformers/all-MiniLM-L6-v2` (384 dims), run in a thread so the event loop is not blocked
-- LLM: xAI Grok through its OpenAI compatible API (any model behind the `LLM` interface works)
+- LLM: any provider with an OpenAI compatible chat API (Groq by default, xAI or OpenAI work by changing the URL and model), behind an `LLM` interface
 
 ## Run
 
@@ -21,7 +21,7 @@ Small document Q&A service, built as a study project: async FastAPI, SQLAlchemy 
 docker compose up -d
 python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
-copy .env.example .env        # then fill XAI_API_KEY and XAI_MODEL
+copy .env.example .env        # then fill LLM_API_KEY and LLM_MODEL
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
