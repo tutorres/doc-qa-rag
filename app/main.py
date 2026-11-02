@@ -1,6 +1,8 @@
 from functools import lru_cache
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -22,6 +24,11 @@ def get_embedder() -> Embedder:
 @lru_cache
 def get_llm() -> LLM:
     return OpenAICompatibleLLM(settings.llm_api_key, settings.llm_base_url, settings.llm_model)
+
+
+@app.get("/", include_in_schema=False)
+async def index():
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @app.get("/health")

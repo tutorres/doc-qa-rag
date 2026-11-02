@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>doc-qa-rag</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.1rem; margin-top: 2rem; }
+  input, textarea { width: 100%; box-sizing: border-box; padding: .5rem; margin: .25rem 0 .5rem; font: inherit; }
+  textarea { min-height: 7rem; }
+  button { padding: .5rem 1rem; font: inherit; cursor: pointer; }
+  .msg { color: #555; margin-top: .5rem; }
+  .answer { background: #f3f6fa; padding: .75rem 1rem; border-radius: 6px; margin-top: .75rem; white-space: pre-wrap; }
+  .source { border-left: 3px solid #bbb; padding-left: .75rem; margin: .5rem 0; font-size: .9rem; color: #444; }
+  .error { color: #b00020; }
+</style>
+</head>
+<body>
+<h1>doc-qa-rag</h1>
+
+<h2>1. Add a document</h2>
+<input id="title" placeholder="Title">
+<textarea id="content" placeholder="Paste the document text"></textarea>
+<button id="add">Add document</button>
+<div id="addMsg" class="msg"></div>
+
+<h2>2. Ask a question</h2>
+<input id="question" placeholder="Ask something about your documents">
+<button id="ask">Ask</button>
+<div id="askMsg" class="msg"></div>
+<div id="answer"></div>
+<div id="sources"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function post(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed (" + res.status + ")");
+  return data;
+}
+
+$("add").onclick = async () => {
+  $("addMsg").className = "msg"; $("addMsg").textContent = "Indexing...";
+  try {
+    const d = await post("/documents", { title: $("title").value, content: $("content").value });
+    $("addMsg").textContent = "Saved \"" + d.title + "\" as " + d.chunks + " chunk(s).";
+    $("title").value = ""; $("content").value = "";
+  } catch (e) { $("addMsg").className = "msg error"; $("addMsg").textContent = e.message; }
+};
+
+$("ask").onclick = async () => {
+  $("askMsg").className = "msg"; $("askMsg").textContent = "Thinking...";
+  $("answer").innerHTML = ""; $("sources").innerHTML = "";
+  try {
+    const d = await post("/ask", { question: $("question").value });
+    $("askMsg").textContent = "";
+    const a = document.createElement("div"); a.className = "answer"; a.textContent = d.answer;
+    $("answer").appendChild(a);
+    d.sources.forEach((s, i) => {
+      const el = document.createElement("div"); el.className = "source";
+      el.textContent = "[" + (i + 1) + "] distance " + s.distance.toFixed(3) + " | " + s.text;
+      $("sources").appendChild(el);
+    });
+  } catch (e) { $("askMsg").className = "msg error"; $("askMsg").textContent = e.message; }
+};
+
+$("question").addEventListener("keydown", (e) => { if (e.key === "Enter") $("ask").click(); });
+</script>
+</body>
+</html>
