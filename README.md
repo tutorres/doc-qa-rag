@@ -47,3 +47,4 @@ pytest
 - No auth, no pagination, no reranking, no evaluation of answer quality.
 - Documents are plain text only (no PDF extraction).
 - No background queue: indexing happens inside the request.
+- No idempotency: if a client retries `POST /documents` after a lost response, the same document is stored twice. A fix would be an idempotency key or a content hash with a unique constraint.
